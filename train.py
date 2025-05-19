@@ -7,12 +7,20 @@ from sklearn.model_selection import train_test_split
 from dataloader import load_data, encode_labels, get_class_counts
 from models import FusionModel
 from config import config
-
+from utils import (
+    plot_class_distribution,
+    visualize_samples,
+    plot_classification_report,
+    plot_multiclass_roc,
+    plot_training_history
+)
 
 def run_experiment(model, x_train, y_train, num_epochs, batch_size, validation_split):
+    optimizer = 'adam'
+    validation_split = 0.1
     model.compile(
         loss='categorical_crossentropy',
-        optimizer=config.optimizer,
+        optimizer=optimizer,
         metrics=['accuracy']
     )
     os.makedirs(config.checkpoint_dir, exist_ok=True)
@@ -39,13 +47,32 @@ def run_experiment(model, x_train, y_train, num_epochs, batch_size, validation_s
     return history
 
 
-def main():
+def main(save_data_plots=False):
+    batch_size = 16
+    num_epochs = 10
+    validation_split = 0.1
+    
     data, labels = load_data(config.parent_dir)
+    classes, counts = get_class_counts(labels)
+
+    plot_class_distribution(classes, counts)
+    plt.savefig('class_distribution.png', bbox_inches='tight')
+    plt.close()
+    
+    visualize_samples(data, labels, samples_per_class=1)
+    plt.savefig('samples.png', bbox_inches='tight')
+    plt.close()
+
     y_encoded, _ = encode_labels(labels)
 
-    X_train, X_val, y_train, y_val = train_test_split(
-        data, y_encoded, test_size=0.2, random_state=42
+    global X_test, y_test
+    X_train, X_test, y_train, y_test = train_test_split(
+        data, y_encoded, test_size=0.2
     )
+
+    d = {'x_train': X_train, 'x_test': X_test, 'y_train': y_train, 'y_test': y_test}
+    for i in d:
+        print(i, ' : ', d[i].shape, ' --> ', d[i].dtype)
 
     inp = Input(shape=config.input_shape)
     out = FusionModel(
@@ -59,13 +86,38 @@ def main():
     history = run_experiment(
         model,
         X_train, y_train,
-        num_epochs=config.num_epochs,
-        batch_size=config.batch_size,
-        validation_split=config.validation_split
+        num_epochs=num_epochs,
+        batch_size=batch_size,
+        validation_split=validation_split
     )
 
-    model.save(os.path.join(config.drive_path, 'final_model.h5'))
+    model.save(config.model_save_dir)
+    return model, history
 
 
 if __name__ == '__main__':
-    main()
+    X_test = y_test = None
+    model, history = main(True)
+    test_loss, test_acc = model.evaluate(X_test, y_test, verbose=0)
+    print(f"\nTest accuracy: {test_acc:.4f}, loss: {test_loss:.4f}")
+    
+    plot_training_history(history)
+    plt.savefig('training_hist.png', bbox_inches='tight')
+    plt.close()
+    
+    y_pred_prob = model.predict(X_test)
+    y_pred_classes = y_pred_prob.argmax(axis=1)
+    y_true_classes = y_test.argmax(axis=1)
+    
+    from sklearn.metrics import classification_report
+    cr = classification_report(y_true_classes, y_pred_classes, target_names=[str(c) for c in classes])
+    plot_classification_report(cr, title='Test Set Classification Report')
+    plt.savefig('classification_report.png', bbox_inches='tight')
+    plt.close()
+    
+    plot_multiclass_roc(y_test, y_pred_prob, class_names=[str(c) for c in classes])
+    plt.savefig('multiclass_roc.png', bbox_inches='tight')
+    plt.close()
+
+    
+    
