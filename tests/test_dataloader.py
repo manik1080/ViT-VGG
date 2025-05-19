@@ -19,7 +19,7 @@ def synthetic_data(tmp_path):
     with open(label_file, 'wb') as f:
         pickle.dump(labels, f)
     # Monkeypatch config paths
-    import config
+    from config import config
     config.data_bin_path = str(data_file)
     config.labels_bin_path = str(label_file)
     return data, labels
