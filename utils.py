@@ -165,3 +165,17 @@ def plot_multiclass_roc(y_true, y_score, class_names=None):
     plt.legend(loc='lower right')
     plt.tight_layout()
     plt.show()
+
+def plot_training_history(history):
+    acc_key = 'accuracy' if 'accuracy' in history.history else 'acc'
+    val_acc_key = 'val_' + acc_key
+
+    plt.figure()
+    plt.plot(history.history[acc_key])
+    plt.plot(history.history.get(val_acc_key, []))
+    plt.title('Training and Validation Accuracy')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.legend(['train', 'val'])
+    plt.tight_layout()
+    plt.show()
