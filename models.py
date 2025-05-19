@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.applications.vgg16 import VGG16
+from config import config
 
 
 def create_mlp(x, hidden_units, dropout_rate):
