@@ -1,6 +1,6 @@
 import os
 
-class Config:
+class config:
     # paths
     parent_dir = '/content/drive/MyDrive/Apple Disease'
 
