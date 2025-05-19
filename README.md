@@ -9,11 +9,11 @@ Centralising all paths and hyperparameters in a config.py for easy tweaks.
 
 ## Model Performance
 
-After training for 50 epochs on a dataset of ~2,000 apple‑leaf images (split 80/20 train/val), the Vision Transformer achieved:
+After training for 50 epochs on a dataset of ~2,000 apple‑leaf images (split 70/10/20 train/val/test), the Vision Transformer achieved:
 
 - **Training accuracy:** 95.2%  
-- **Validation accuracy during Training:** 92.3%  
-- **After Training:** 96.9%  
+- **Validation accuracy:** 92.3%  
+- **Test accuracy:** 96.9%  
 
 ### Detailed Metrics
 
